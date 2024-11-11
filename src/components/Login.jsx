@@ -1,5 +1,11 @@
 import { useState } from "react";
 import Input from "./Input";
+import {
+  isEmail,
+  isNotEmpty,
+  isEqualsToOtherValue,
+  hasMinLength,
+} from "../util/validation";
 
 export default function Login() {
   const [enteredValues, setEnteredValues] = useState({
@@ -12,15 +18,19 @@ export default function Login() {
   });
 
   //  condition for password length check.
-  const emailIsInvalid = didEdit.email && !enteredValues.email.includes("@");
-  const passwordIsInvalid = didEdit.password && enteredValues.password.trim().length < 6;
+  const emailIsInvalid =
+    didEdit.email &&
+    !isEmail(enteredValues.email) &&
+    !isNotEmpty(enteredValues.email);
+  const passwordIsInvalid =
+    didEdit.password && !hasMinLength(enteredValues.password, 6);
 
   function handleSubmit(event) {
     event.preventDefault(); // Prevents the default browser behavior
     console.log(enteredValues);
 
     // Resetting `enteredValues` and resetting `didEdit`
-    
+
     setEnteredValues({
       email: "",
       password: "",
@@ -41,7 +51,7 @@ export default function Login() {
     }));
 
     // Resetting `didEdit` when user types
-    
+
     setDidEdit((prevEdit) => ({
       ...prevEdit,
       [identifier]: false,
@@ -61,7 +71,6 @@ export default function Login() {
       <h2>Login</h2>
 
       <div className="control-row">
-       
         <Input
           id="email"
           type="email"
@@ -73,28 +82,38 @@ export default function Login() {
           value={enteredValues.email}
         />
 
-        
         <Input
           id="password"
           type="password"
           label="Password"
           onBlur={() => handleBlurValue("password")}
           name="password"
-          error={passwordIsInvalid ? "Password must be at least 6 characters long." : ""}
-          onChange={(event) => handleInputChange("password", event.target.value)}
+          error={
+            passwordIsInvalid
+              ? "Password must be at least 6 characters long."
+              : ""
+          }
+          onChange={(event) =>
+            handleInputChange("password", event.target.value)
+          }
           value={enteredValues.password}
         />
       </div>
 
       <p className="form-actions">
-       
-        <button type="button" className="button button-flat" onClick={() => {
-          setEnteredValues({ email: "", password: "" });
-          setDidEdit({ email: false, password: false });
-        }}>
+        <button
+          type="button"
+          className="button button-flat"
+          onClick={() => {
+            setEnteredValues({ email: "", password: "" });
+            setDidEdit({ email: false, password: false });
+          }}
+        >
           Reset
         </button>
-        <button type="submit" className="button">Login</button>
+        <button type="submit" className="button">
+          Login
+        </button>
       </p>
     </form>
   );
