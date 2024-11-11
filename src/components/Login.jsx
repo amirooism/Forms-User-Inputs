@@ -1,70 +1,34 @@
-import { useState } from "react";
 import Input from "./Input";
 import {
   isEmail,
   isNotEmpty,
-  isEqualsToOtherValue,
   hasMinLength,
 } from "../util/validation";
+import { useInput } from "./hooks/useInput";
 
 export default function Login() {
-  const [enteredValues, setEnteredValues] = useState({
-    email: "",
-    password: "",
-  });
-  const [didEdit, setDidEdit] = useState({
-    email: false,
-    password: false,
-  });
+  const {
+    value: emailValue,
+    handleInputChange: handleEmailChange,
+    handleInputBlur: handleEmailBlur,
+    hasError: emailHasError,
+  } = useInput("", (value) => isEmail(value) && isNotEmpty(value)); // we need alies " : " for every useInput, because we gonna use the hook for different inputs
 
-  //  condition for password length check.
-  const emailIsInvalid =
-    didEdit.email &&
-    !isEmail(enteredValues.email) &&
-    !isNotEmpty(enteredValues.email);
-  const passwordIsInvalid =
-    didEdit.password && !hasMinLength(enteredValues.password, 6);
+  const {
+    value: passwordValue,
+    handleInputChange: handlePasswordChange,
+    handleInputBlur: handlePasswordBlur,
+    hasError: passwordHasError,
+  } = useInput("", (value) => hasMinLength(value, 6));
 
   function handleSubmit(event) {
-    event.preventDefault(); // Prevents the default browser behavior
-    console.log(enteredValues);
-
-    // Resetting `enteredValues` and resetting `didEdit`
-
-    setEnteredValues({
-      email: "",
-      password: "",
-    });
-    setDidEdit({
-      email: false,
-      password: false,
-    });
+    event.preventDefault(); 
+    if (emailHasError || passwordHasError) {
+      return;
+    }
+    console.log(emailValue, passwordValue);
   }
 
-  console.log("sending HTTP request");
-
-  function handleInputChange(identifier, value) {
-    // Addition of just event, it gets an identifier to find out which event occurred
-    setEnteredValues((prevValue) => ({
-      ...prevValue,
-      [identifier]: value,
-    }));
-
-    // Resetting `didEdit` when user types
-
-    setDidEdit((prevEdit) => ({
-      ...prevEdit,
-      [identifier]: false,
-    }));
-  }
-
-  function handleBlurValue(identifier) {
-    // Updates the `didEdit` flag to true when a field loses focus
-    setDidEdit((prevEdit) => ({
-      ...prevEdit,
-      [identifier]: true,
-    }));
-  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -75,40 +39,27 @@ export default function Login() {
           id="email"
           type="email"
           label="Email"
-          onBlur={() => handleBlurValue("email")}
+          onBlur={handleEmailBlur}
+          onChange={handleEmailChange} // The email parameter is the identifier for handleInputChange
           name="email"
-          error={emailIsInvalid && "Please enter a valid email address."}
-          onChange={(event) => handleInputChange("email", event.target.value)} // The email parameter is the identifier for handleInputChange
-          value={enteredValues.email}
+          error={emailHasError && "Please enter a valid email address."}
+          value={emailValue}
         />
 
         <Input
           id="password"
           type="password"
           label="Password"
-          onBlur={() => handleBlurValue("password")}
           name="password"
-          error={
-            passwordIsInvalid
-              ? "Password must be at least 6 characters long."
-              : ""
-          }
-          onChange={(event) =>
-            handleInputChange("password", event.target.value)
-          }
-          value={enteredValues.password}
+          error={passwordHasError && "Please enter a valid password."}
+          onBlur={handlePasswordBlur}
+          onChange={handlePasswordChange}
+          value={passwordValue}
         />
       </div>
 
       <p className="form-actions">
-        <button
-          type="button"
-          className="button button-flat"
-          onClick={() => {
-            setEnteredValues({ email: "", password: "" });
-            setDidEdit({ email: false, password: false });
-          }}
-        >
+        <button type="button" className="button button-flat">
           Reset
         </button>
         <button type="submit" className="button">
